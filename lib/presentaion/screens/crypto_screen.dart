@@ -12,9 +12,6 @@ class CryptoScreen extends StatefulWidget {
 }
 
 class _CryptoScreenState extends State<CryptoScreen> {
-  // Fixed to BTCUSDT only
-  final String symbol = 'BTCUSDT';
-
   @override
   void initState() {
     super.initState();
@@ -28,7 +25,7 @@ class _CryptoScreenState extends State<CryptoScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bitcoin (BTCUSDT) Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('BTC/USDT', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: theme.colorScheme.primaryContainer,
         foregroundColor: theme.colorScheme.onPrimaryContainer,
         actions: [
@@ -71,21 +68,16 @@ class _CryptoScreenState extends State<CryptoScreen> {
     switch (state) {
       case WebsocketInitial():
         return _buildInitialWidget(theme);
-
       case WebsocketConnecting():
-        return _buildConnectingWidget(state, theme);
-
+        return _buildConnectingWidget(state);
       case WebsocketConnected():
-        return _buildConnectedWidget(state, theme);
-
+        return _buildConnectedWidget(state);
       case WebsocketTickerDataReceived():
-        return _buildTickerDataWidget(state, theme);
-
+        return _buildTickerDataWidget(state);
       case WebsocketDisconnected():
-        return _buildDisconnectedWidget(state, theme);
-
+        return _buildDisconnectedWidget(state);
       case WebsocketError():
-        return _buildErrorWidget(state, theme);
+        return _buildErrorWidget(state);
     }
   }
 
@@ -108,145 +100,88 @@ class _CryptoScreenState extends State<CryptoScreen> {
     );
   }
 
-  Widget _buildConnectingWidget(WebsocketConnecting state, ThemeData theme) {
+  Widget _buildConnectingWidget(WebsocketConnecting state) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: theme.colorScheme.primary),
+          CircularProgressIndicator(color: Colors.green),
           const SizedBox(height: 16),
-          Text('Connecting to Bitcoin...', style: theme.textTheme.titleMedium),
+          Text('Connecting to Bitcoin...', style: TextStyle(color: Colors.green)),
         ],
       ),
     );
   }
 
-  Widget _buildConnectedWidget(WebsocketConnected state, ThemeData theme) {
+  Widget _buildConnectedWidget(WebsocketConnected state) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.check_circle, size: 64, color: Colors.green),
           const SizedBox(height: 16),
-          Text(state.message, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text(state.message, style: TextStyle(color: Colors.green)),
           const SizedBox(height: 8),
-          Text('Waiting for data...', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          Text('Waiting for data...', style: TextStyle(color: Colors.green)),
         ],
       ),
     );
   }
 
-  Widget _buildTickerDataWidget(WebsocketTickerDataReceived state, ThemeData theme) {
+  Widget _buildTickerDataWidget(WebsocketTickerDataReceived state) {
     final ticker = state.tickerData;
-    final priceChange = double.tryParse(ticker.priceChange) ?? 0;
-    final priceChangePercent = double.tryParse(ticker.priceChangePercent) ?? 0;
-    final isPositive = priceChange >= 0;
     final currentPrice = double.tryParse(ticker.lastPrice) ?? 0;
 
     return Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Bitcoin Icon
-          Icon(Icons.currency_bitcoin, size: 80, color: Colors.orange),
-          const SizedBox(height: 24),
-
-          // Symbol
-          Text(
-            'Bitcoin (BTC/USDT)',
-            style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
-          ),
-          const SizedBox(height: 16),
-
-          // Current Price
-          Text(
-            '\$${currentPrice.toStringAsFixed(2)}',
-            style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.primary),
-          ),
-          const SizedBox(height: 16),
-
-          // Price Change
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: isPositive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(color: isPositive ? Colors.green : Colors.red, width: 1),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Bitcoin Icon
+            Icon(Icons.currency_bitcoin, size: 80, color: Colors.orange),
+            const SizedBox(height: 24),
+            // Symbol
+            Text(
+              'Bitcoin (BTC/USDT)',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 24),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+            const SizedBox(height: 16),
+            // Current Price
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(isPositive ? Icons.trending_up : Icons.trending_down, color: isPositive ? Colors.green : Colors.red, size: 20),
-                const SizedBox(width: 8),
                 Text(
-                  '${isPositive ? '+' : ''}\$${priceChange.toStringAsFixed(2)}',
-                  style: TextStyle(color: isPositive ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
+                  '\$',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 30),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 Text(
-                  '(${isPositive ? '+' : ''}${priceChangePercent.toStringAsFixed(2)}%)',
-                  style: TextStyle(color: isPositive ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 16),
+                  currentPrice.toStringAsFixed(2),
+                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 28),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 32),
-
-          // Essential Stats
-          Card(
-            elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Text('24h Statistics', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildSimpleStatColumn('High', '\$${double.tryParse(ticker.highPrice)?.toStringAsFixed(2) ?? ticker.highPrice}', Colors.green, theme),
-                      _buildSimpleStatColumn('Low', '\$${double.tryParse(ticker.lowPrice)?.toStringAsFixed(2) ?? ticker.lowPrice}', Colors.red, theme),
-                      _buildSimpleStatColumn('Volume', (double.tryParse(ticker.volume) ?? 0).toStringAsFixed(0), theme.colorScheme.primary, theme),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSimpleStatColumn(String label, String value, Color color, ThemeData theme) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(color: color, fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDisconnectedWidget(WebsocketDisconnected state, ThemeData theme) {
+  Widget _buildDisconnectedWidget(WebsocketDisconnected state) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.cloud_off, size: 64, color: theme.colorScheme.onSurfaceVariant),
+          Icon(Icons.cloud_off, size: 64, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Disconnected', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text('Disconnected', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
             state.message,
-            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: TextStyle(color: Colors.red),
             textAlign: TextAlign.center,
           ),
         ],
@@ -254,23 +189,23 @@ class _CryptoScreenState extends State<CryptoScreen> {
     );
   }
 
-  Widget _buildErrorWidget(WebsocketError state, ThemeData theme) {
+  Widget _buildErrorWidget(WebsocketError state) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
+            Icon(Icons.error_outline, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
               'Connection Error',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: theme.colorScheme.error),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
             ),
             const SizedBox(height: 8),
             Text(
               state.message,
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: TextStyle(color: Colors.red),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),

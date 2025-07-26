@@ -107,7 +107,7 @@ class _CryptoScreenState extends State<CryptoScreen> {
         children: [
           CircularProgressIndicator(color: Colors.green),
           const SizedBox(height: 16),
-          Text('Connecting to Bitcoin...', style: TextStyle(color: Colors.green)),
+          Text('Connecting to Bitcoin...', style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold, fontSize: 24)),
         ],
       ),
     );
@@ -120,9 +120,9 @@ class _CryptoScreenState extends State<CryptoScreen> {
         children: [
           Icon(Icons.check_circle, size: 64, color: Colors.green),
           const SizedBox(height: 16),
-          Text(state.message, style: TextStyle(color: Colors.green)),
+          Text(state.message, style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 24)),
           const SizedBox(height: 8),
-          Text('Waiting for data...', style: TextStyle(color: Colors.green)),
+          Text('Waiting for data...', style: TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold, fontSize: 24)),
         ],
       ),
     );
@@ -177,11 +177,11 @@ class _CryptoScreenState extends State<CryptoScreen> {
         children: [
           Icon(Icons.cloud_off, size: 64, color: Colors.red),
           const SizedBox(height: 16),
-          Text('Disconnected', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text('Disconnected', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 24)),
           const SizedBox(height: 8),
           Text(
             state.message,
-            style: TextStyle(color: Colors.red),
+            style: TextStyle(color: Colors.red, fontSize: 24),
             textAlign: TextAlign.center,
           ),
         ],
@@ -200,12 +200,12 @@ class _CryptoScreenState extends State<CryptoScreen> {
             const SizedBox(height: 16),
             Text(
               'Connection Error',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 24),
             ),
             const SizedBox(height: 8),
             Text(
               state.message,
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Colors.red, fontSize: 24),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),

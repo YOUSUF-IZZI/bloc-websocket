@@ -5,10 +5,10 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:bloc_testing/data/models/ticker_data.dart';
 
 class WebsocketRepository {
-  WebSocketChannel? _channel;
+  WebSocketChannel? _channel;  //Holds the WebSocketChannel connection
   StreamController<TickerData>? _tickerController;
   StreamController<String>? _connectionController;
-  StreamSubscription? _subscription;
+  StreamSubscription? _subscription;  //Subscription to the WebSocket stream
   
   // Store latest data
   TickerData? _latestTickerData;
@@ -24,6 +24,10 @@ class WebsocketRepository {
   
   bool get isConnected => _channel != null;
 
+  /*
+  The constructor calls _initializeControllers() which sets up broadcast StreamControllers
+  These controllers allow multiple listeners to receive updates
+  */
   WebsocketRepository() {
     _initializeControllers();
   }
@@ -33,6 +37,11 @@ class WebsocketRepository {
     _connectionController = StreamController<String>.broadcast();
   }
 
+  /*
+  The connect() method takes a symbol parameter (default is 'btcusdt')
+  It first checks if the WebSocket is already connected
+  If not, it creates a new WebSocket connection using the provided symbol
+  */
   Future<void> connect({String symbol = 'btcusdt'}) async {
     try {
       if (_channel != null) {

@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-
-import 'package:bloc_testing/data/models/ticker_data.dart';
 import 'package:bloc_testing/data/repos/websocket_repository.dart';
 import 'package:bloc_testing/presentaion/blocs/websocket/websocket_event.dart';
 import 'package:bloc_testing/presentaion/blocs/websocket/websocket_state.dart';
@@ -26,11 +24,11 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
     // Listen to ticker data stream
     _tickerSubscription = _websocketRepository.tickerStream.listen(
       (tickerData) {
-        add(TickerDataReceivedEvent(data: tickerData.toJson()));
+        add(TickerDataReceivedEvent());
       },
       onError: (error) {
         log('Ticker stream error: $error');
-        add(ConnectionStatusChangedEvent(status: 'error: Ticker stream error: $error'));
+        add(ConnectionStatusChangedEvent());
       },
     );
 
@@ -38,11 +36,11 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
     _connectionSubscription = _websocketRepository.connectionStream.listen(
       (status) {
         log('Connection status: $status');
-        add(ConnectionStatusChangedEvent(status: status));
+        add(ConnectionStatusChangedEvent());
       },
       onError: (error) {
         log('Connection stream error: $error');
-        add(ConnectionStatusChangedEvent(status: 'error: Connection error: $error'));
+        add(ConnectionStatusChangedEvent());
       },
     );
   }
@@ -80,8 +78,10 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
     Emitter<WebsocketState> emit,
   ) {
     try {
-      final tickerData = TickerData.fromJson(event.data);
-      emit(WebsocketTickerDataReceived(tickerData: tickerData));
+      final tickerData = _websocketRepository.latestTickerData;
+      if (tickerData != null) {
+        emit(WebsocketTickerDataReceived(tickerData: tickerData));
+      }
     } catch (e) {
       log('Error processing ticker data: $e');
       emit(WebsocketError(message: 'Failed to process ticker data: $e'));
@@ -92,7 +92,7 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
     ConnectionStatusChangedEvent event,
     Emitter<WebsocketState> emit,
   ) {
-    final status = event.status;
+    final status = _websocketRepository.connectionStatus;
     switch (status) {
       case 'connecting':
         emit(WebsocketConnecting());

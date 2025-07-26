@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:bloc_testing/data/models/ticker_data.dart';
 
@@ -11,9 +10,17 @@ class WebsocketRepository {
   StreamController<String>? _connectionController;
   StreamSubscription? _subscription;
   
+  // Store latest data
+  TickerData? _latestTickerData;
+  String _connectionStatus = 'disconnected';
+  
   // Getters for streams
   Stream<TickerData> get tickerStream => _tickerController?.stream ?? const Stream.empty();
   Stream<String> get connectionStream => _connectionController?.stream ?? const Stream.empty();
+  
+  // Getters for latest data
+  TickerData? get latestTickerData => _latestTickerData;
+  String get connectionStatus => _connectionStatus;
   
   bool get isConnected => _channel != null;
 
@@ -36,7 +43,8 @@ class WebsocketRepository {
       final uri = Uri.parse('wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@ticker');
       _channel = WebSocketChannel.connect(uri);
       
-      _connectionController?.add('connecting');
+      _connectionStatus = 'connecting';
+      _connectionController?.add(_connectionStatus);
       log('Connecting to: ${uri.toString()}');
 
       // Listen to the WebSocket stream
@@ -45,30 +53,36 @@ class WebsocketRepository {
           try {
             final jsonData = json.decode(data);
             final tickerData = TickerData.fromJson(jsonData);
+            _latestTickerData = tickerData;
             _tickerController?.add(tickerData);
             log('Received ticker data for ${tickerData.symbol}');
           } catch (e) {
             log('Error parsing ticker data: $e');
-            _connectionController?.add('error: Failed to parse data');
+            _connectionStatus = 'error: Failed to parse data';
+            _connectionController?.add(_connectionStatus);
           }
         },
         onError: (error) {
           log('WebSocket error: $error');
-          _connectionController?.add('error: $error');
+          _connectionStatus = 'error: $error';
+          _connectionController?.add(_connectionStatus);
           _handleDisconnection();
         },
         onDone: () {
           log('WebSocket connection closed');
-          _connectionController?.add('disconnected');
+          _connectionStatus = 'disconnected';
+          _connectionController?.add(_connectionStatus);
           _handleDisconnection();
         },
       );
 
-      _connectionController?.add('connected');
+      _connectionStatus = 'connected';
+      _connectionController?.add(_connectionStatus);
       log('WebSocket connected successfully');
     } catch (e) {
       log('Failed to connect: $e');
-      _connectionController?.add('error: $e');
+      _connectionStatus = 'error: $e';
+      _connectionController?.add(_connectionStatus);
       _handleDisconnection();
     }
   }
@@ -85,11 +99,13 @@ class WebsocketRepository {
       _subscription?.cancel();
       await _channel?.sink.close();
       _handleDisconnection();
-      _connectionController?.add('disconnected');
+      _connectionStatus = 'disconnected';
+      _connectionController?.add(_connectionStatus);
       log('WebSocket disconnected');
     } catch (e) {
       log('Error during disconnect: $e');
-      _connectionController?.add('error: $e');
+      _connectionStatus = 'error: $e';
+      _connectionController?.add(_connectionStatus);
     }
   }
 

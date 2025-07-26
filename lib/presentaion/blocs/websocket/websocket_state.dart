@@ -7,7 +7,6 @@ sealed class WebsocketState extends Equatable {
 }
 
 class WebsocketInitial extends WebsocketState {}
-
 class WebsocketConnecting extends WebsocketState {}
 
 class WebsocketConnected extends WebsocketState {

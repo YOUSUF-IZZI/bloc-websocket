@@ -11,7 +11,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';  // BLoC pattern implementation
 class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
   final WebsocketRepository _websocketRepository;  // Repository that handles the actual WebSocket connection
   StreamSubscription? _tickerSubscription;  // Subscription to ticker data stream from repository
-  StreamSubscription? _connectionSubscription;  // Subscription to connection status stream from repository
 
   /// Constructor takes a WebsocketRepository and sets up event handlers
   /// Initializes with WebsocketInitial state
@@ -39,20 +38,6 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
         add(ConnectionStatusChangedEvent());
       },
     );
-
-    // Listen to connection status stream from the repository
-    _connectionSubscription = _websocketRepository.connectionStream.listen(
-      (status) {
-        // Log and update state when connection status changes
-        log('Connection status: $status');
-        add(ConnectionStatusChangedEvent());
-      },
-      onError: (error) {
-        // Log errors and update connection status when connection stream has an error
-        log('Connection stream error: $error');
-        add(ConnectionStatusChangedEvent());
-      },
-    );
   }
 
   /// Handler for ConnectWebsocketEvent
@@ -61,8 +46,10 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
     try {
       emit(WebsocketConnecting());
       await _websocketRepository.connect();
-      // Note: The actual connected state will be emitted by _onConnectionStatusChanged ->
-      // when the repository's connectionStream emits a 'connected' status
+      // Check if connection was successful
+      if (_websocketRepository.isConnected) {
+        emit(WebsocketConnected(message: 'Connected successfully'));
+      }
     } catch (e) {
       log('Connect error: $e');
       emit(WebsocketError(message: 'Failed to connect: $e'));
@@ -106,7 +93,6 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
   Future<void> close() {
     // Cancel stream subscriptions
     _tickerSubscription?.cancel();  // Cancel ticker stream subscription
-    _connectionSubscription?.cancel();  // Cancel connection stream subscription
     // Dispose the repository to clean up its resources
     _websocketRepository.dispose();
     // Call the parent class's close method

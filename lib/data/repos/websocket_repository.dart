@@ -7,14 +7,14 @@ import 'package:bloc_testing/data/models/ticker_data.dart';
 class WebsocketRepository {
   WebSocketChannel? _channel;  //Holds the WebSocketChannel connection
   StreamSubscription? _subscription;  //Subscription to the WebSocket stream
-  StreamController<String>? _connectionController;
   StreamController<TickerData>? _tickerController;
   
   // Getters for streams
   Stream<TickerData> get tickerStream => _tickerController?.stream ?? const Stream.empty();
-  Stream<String> get connectionStream => _connectionController?.stream ?? const Stream.empty();
-
- // Store latest data
+  // Since we don't use connection events, just return an empty stream
+  Stream<String> get connectionStream => const Stream.empty();
+  
+  // Store latest data
   TickerData? _latestTickerData;
   
   // Getters for latest data
@@ -24,7 +24,6 @@ class WebsocketRepository {
 
   void _initializeControllers() {
     _tickerController = StreamController<TickerData>.broadcast();
-    _connectionController = StreamController<String>.broadcast();
   }
 
   WebsocketRepository() {
@@ -92,8 +91,6 @@ class WebsocketRepository {
   void dispose() {
     disconnect();
     _tickerController?.close();
-    _connectionController?.close();
     _tickerController = null;
-    _connectionController = null;
   }
 }

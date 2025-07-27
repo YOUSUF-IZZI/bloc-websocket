@@ -179,11 +179,6 @@ class _CryptoScreenState extends State<CryptoScreen> {
           const SizedBox(height: 16),
           Text('Disconnected', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red, fontSize: 24)),
           const SizedBox(height: 8),
-          Text(
-            state.message,
-            style: TextStyle(color: Colors.red, fontSize: 24),
-            textAlign: TextAlign.center,
-          ),
         ],
       ),
     );

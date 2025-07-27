@@ -20,8 +20,6 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
     on<ConnectWebsocketEvent>(_onConnect);  // Handle connection requests
     on<DisconnectWebsocketEvent>(_onDisconnect);  // Handle disconnection requests
     on<TickerDataReceivedEvent>(_onTickerDataReceived);  // Handle when new ticker data arrives
-    on<ConnectionStatusChangedEvent>(_onConnectionStatusChanged);  // Handle connection status changes
-    
     // Set up listeners for the repository streams
     _setupStreamListeners();
   }
@@ -59,19 +57,13 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
 
   /// Handler for ConnectWebsocketEvent
   /// Attempts to establish a WebSocket connection via the repository
-  Future<void> _onConnect(
-    ConnectWebsocketEvent event,
-    Emitter<WebsocketState> emit,
-  ) async {
+  Future<void> _onConnect(ConnectWebsocketEvent event, Emitter<WebsocketState> emit) async {
     try {
-      // First emit a connecting state to update UI
       emit(WebsocketConnecting());
-      // Call the repository to establish the connection (hardcoded to Bitcoin/USDT)
-      await _websocketRepository.connect(symbol: 'btcusdt');
-      // Note: The actual connected state will be emitted by _onConnectionStatusChanged
+      await _websocketRepository.connect();
+      // Note: The actual connected state will be emitted by _onConnectionStatusChanged ->
       // when the repository's connectionStream emits a 'connected' status
     } catch (e) {
-      // Log and emit error state if connection fails
       log('Connect error: $e');
       emit(WebsocketError(message: 'Failed to connect: $e'));
     }
@@ -79,17 +71,11 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
 
   /// Handler for DisconnectWebsocketEvent
   /// Closes the WebSocket connection via the repository
-  Future<void> _onDisconnect(
-    DisconnectWebsocketEvent event,
-    Emitter<WebsocketState> emit,
-  ) async {
+  Future<void> _onDisconnect(DisconnectWebsocketEvent event, Emitter<WebsocketState> emit) async {
     try {
-      // Call the repository to close the connection
       await _websocketRepository.disconnect();
-      // Emit disconnected state to update UI
       emit(WebsocketDisconnected(message: 'Disconnected'));
     } catch (e) {
-      // Log and emit error state if disconnection fails
       log('Disconnect error: $e');
       emit(WebsocketError(message: 'Failed to disconnect: $e'));
     }
@@ -99,10 +85,7 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
 
   /// Handler for TickerDataReceivedEvent
   /// Retrieves the latest ticker data from the repository and emits it as a state
-  void _onTickerDataReceived(
-    TickerDataReceivedEvent event,
-    Emitter<WebsocketState> emit,
-  ) {
+  void _onTickerDataReceived(TickerDataReceivedEvent event, Emitter<WebsocketState> emit) {
     try {
       // Get the latest ticker data from the repository
       final tickerData = _websocketRepository.latestTickerData;
@@ -117,35 +100,6 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
     }
   }
 
-  /// Handler for ConnectionStatusChangedEvent
-  /// Maps the repository's connection status string to appropriate BLoC states
-  void _onConnectionStatusChanged(
-    ConnectionStatusChangedEvent event,
-    Emitter<WebsocketState> emit,
-  ) {
-    // Get current connection status from repository
-    final status = _websocketRepository.connectionStatus;
-    
-    // Map string status to appropriate state objects
-    switch (status) {
-      case 'connecting':
-        emit(WebsocketConnecting());  // Emit connecting state
-        break;
-      case 'connected':
-        emit(WebsocketConnected(message: 'Connected to Bitcoin'));  // Emit connected state
-        break;
-      case 'disconnected':
-        emit(WebsocketDisconnected(message: 'Disconnected'));  // Emit disconnected state
-        break;
-      default:
-        // Handle error states (which start with 'error:')
-        if (status.startsWith('error:')) {
-          emit(WebsocketError(message: status));  // Emit error state with the error message
-        }
-        break;
-    }
-  }
-
   /// Clean up resources when the BLoC is closed
   /// This is important to prevent memory leaks
   @override
@@ -153,10 +107,8 @@ class WebsocketBloc extends Bloc<WebsocketEvent, WebsocketState> {
     // Cancel stream subscriptions
     _tickerSubscription?.cancel();  // Cancel ticker stream subscription
     _connectionSubscription?.cancel();  // Cancel connection stream subscription
-    
     // Dispose the repository to clean up its resources
     _websocketRepository.dispose();
-    
     // Call the parent class's close method
     return super.close();
   }
